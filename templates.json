@@ -1,0 +1,22 @@
+[
+  {
+    "code": "abc123",
+    "title": "Gamingowe — proste role, kanały",
+    "description": "Startowy szablon dla serwera gamingowego z kategoriami: ogólne, voice, rekrutacja.",
+    "tags": [
+      "gamingowe",
+      "społecznościowe"
+    ],
+    "url": "https://discord.new/abc123"
+  },
+  {
+    "code": "xyz789",
+    "title": "Roleplay — średni",
+    "description": "Kanały RP, karty postaci, logi MG, prywatki.",
+    "tags": [
+      "roleplay",
+      "tematyczne"
+    ],
+    "url": "https://discord.new/xyz789"
+  }
+]

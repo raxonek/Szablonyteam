@@ -1,0 +1,29 @@
+
+:root { --gap: 16px; }
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin:0; color:#111; background:#fafafa; }
+a { color:#2b5cff; text-decoration:none; }
+.container { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+header { padding: 28px 0 10px; border-bottom: 1px solid #eee; background:#fff; position:sticky; top:0; z-index:10; }
+h1 { margin:0; font-size: 24px; }
+.sub { color:#666; margin:6px 0 0; }
+.toolbar { display:flex; gap:8px; margin: 16px 0; }
+.toolbar input { flex:1; padding:10px; border:1px solid #ddd; border-radius:10px; }
+.toolbar button { padding:10px 14px; border-radius:10px; border:1px solid #333; background:#333; color:#fff; cursor:pointer; }
+.meta { color:#666; margin: 12px 0; }
+.add-section { margin:20px 0; padding:16px; background:#fff; border:1px solid #eee; border-radius:12px; }
+.add-form { display:flex; flex-direction:column; gap:10px; }
+.add-form input, .add-form textarea { padding:10px; border:1px solid #ddd; border-radius:10px; }
+.add-form button { align-self:flex-start; padding:8px 14px; border-radius:8px; border:none; background:#2b5cff; color:#fff; cursor:pointer; }
+.grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap: var(--gap); margin:14px 0 28px; }
+.card { background:#fff; border:1px solid #eee; border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:10px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: translateY(-4px); box-shadow:0 6px 16px rgba(0,0,0,.15); }
+.card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.card h3 { margin:0; font-size: 18px; }
+.tags { display:flex; flex-wrap:wrap; gap:6px; }
+.tags span { font-size:12px; border:1px solid #eee; border-radius:999px; padding:2px 8px; background:#f0f0f0; }
+.desc { min-height:40px; color:#333; }
+.btn { align-self:flex-start; padding:8px 12px; background:#2b5cff; color:#fff; border-radius:10px; }
+.footer { color:#666; font-size:14px; padding:24px 0 40px; border-top:1px solid #eee; }
+.fadein { animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }

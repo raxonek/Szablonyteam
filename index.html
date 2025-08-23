@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Szablony Discord — katalog</title>
+  <link rel="stylesheet" href="styles.css">
+  <meta name="description" content="Katalog szablonów Discord z możliwością dodawania.">
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+</head>
+<body>
+<header class="container">
+  <h1>📚 Szablony Discord</h1>
+  <p class="sub">Dodawaj i przeglądaj szablony serwerów Discord.</p>
+  <form id="searchForm" class="toolbar" onsubmit="return false;">
+    <input id="q" type="search" placeholder="Szukaj...">
+    <button id="btnSearch" type="button">🔍 Szukaj</button>
+  </form>
+</header>
+
+<main class="container">
+  <section class="add-section">
+    <h2>➕ Dodaj nowy szablon</h2>
+    <form id="addForm" class="add-form">
+      <input type="text" id="code" placeholder="discord.new/XXXXX" required>
+      <input type="text" id="title" placeholder="Tytuł" required>
+      <textarea id="desc" placeholder="Opis"></textarea>
+      <input type="text" id="tags" placeholder="Tagi (oddzielone przecinkami)">
+      <button type="submit">Dodaj szablon</button>
+    </form>
+  </section>
+
+  <div id="stats" class="meta"></div>
+  <section id="grid" class="grid" aria-live="polite"></section>
+  <div id="pager" class="pagination"></div>
+</main>
+
+<footer class="container footer">
+  <p>Static HTML+CSS+JS. Dane trzymane są w pamięci przeglądarki.</p>
+</footer>
+
+<script>
+const PAGE_SIZE = 12;
+let fuse;
+
+// ===== Load initial data =====
+async function loadData() {
+  const res = await fetch('templates.json');
+  const data = await res.json();
+  return data.map(it => ({
+    code: it.code,
+    title: it.title || '',
+    description: it.description || '',
+    tags: Array.isArray(it.tags) ? it.tags : [],
+    url: it.url || ('https://discord.new/' + it.code)
+  }));
+}
+
+function refreshFuse(data) {
+  fuse = new Fuse(data, {
+    keys: ['title','description','tags'],
+    threshold: 0.4
+  });
+}
+
+function filterData(all) {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return all;
+  return fuse.search(q).map(r => r.item);
+}
+
+function renderPage(items, page=1) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const start = (page-1) * PAGE_SIZE;
+  const slice = items.slice(start, start+PAGE_SIZE);
+  for (const it of slice) {
+    const card = document.createElement('article');
+    card.className = 'card fadein';
+    card.innerHTML = `
+      <div class="card-head">
+        <h3>${it.title || 'Bez tytułu'}</h3>
+        <div class="tags">${(it.tags||[]).map(t=>`<span>${t}</span>`).join('')}</div>
+      </div>
+      <p class="desc">${(it.description||'').slice(0,180)}${(it.description||'').length>180?'…':''}</p>
+      <a class="btn" target="_blank" href="${it.url}">Użyj szablonu</a>`;
+    grid.appendChild(card);
+  }
+}
+
+function updateStats(filtered, total) {
+  const stats = document.getElementById('stats');
+  const pages = Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
+  stats.textContent = `Łącznie: ${filtered.length} z ${total} • Strony: ${pages}`;
+}
+
+function doRender(all) {
+  const filtered = filterData(all);
+  renderPage(filtered,1);
+  updateStats(filtered,all.length);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadData().then(all => {
+    window.__ALL__ = all;
+    refreshFuse(all);
+    doRender(all);
+  });
+
+  document.getElementById('btnSearch').addEventListener('click', () => doRender(window.__ALL__||[]));
+  document.getElementById('q').addEventListener('input', () => doRender(window.__ALL__||[]));
+
+  document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = document.getElementById('code').value.trim().replace('https://discord.new/','');
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('desc').value.trim();
+    const tags = document.getElementById('tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+    const newTemplate = { code, title, description, tags, url: 'https://discord.new/'+code };
+    window.__ALL__.push(newTemplate);
+    refreshFuse(window.__ALL__);
+    doRender(window.__ALL__);
+    e.target.reset();
+  });
+});
+</script>
+</body>
+</html>

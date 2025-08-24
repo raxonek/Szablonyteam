@@ -1,49 +1,118 @@
 <!doctype html>
-<html lang="pl">
+<html lang="pl" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SzablonyTeam — katalog</title>
+  <title>SzablonyTeam - najszybśi w polsce — katalog</title>
   <link rel="stylesheet" href="styles.css">
   <meta name="description" content="Katalog szablonów Discord z możliwością dodawania.">
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 </head>
 <body>
-<header class="container">
-  <h1>📚 SzablonyTeam</h1>
-  <p class="sub">Dodawaj i przeglądaj szablony serwerów Discord.</p>
-  <form id="searchForm" class="toolbar" onsubmit="return false;">
-    <input id="q" type="search" placeholder="Szukaj...">
-    <button id="btnSearch" type="button">🔍 Szukaj</button>
-  </form>
+<header class="container header">
+  <div class="brand">
+    <img src="server-icon.gif" alt="Ikona serwera" class="logo"/>
+    <div>
+      <h1>Szablony Discord</h1>
+      <p class="sub">Dodawaj i przeglądaj szablony serwerów Discord.</p>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="catalog">📚 Katalog</button>
+    <button class="tab" data-tab="discord">🗨️ Discord</button>
+  </nav>
+
+  <div class="controls">
+    <div class="theme-toggle" title="Tryb dzień / noc">
+      <input type="checkbox" id="themeSwitch" />
+      <label for="themeSwitch"><span>🌞</span><span>🌜</span></label>
+    </div>
+  </div>
 </header>
 
 <main class="container">
-  <section class="add-section">
-    <h2>➕ Dodaj nowy szablon</h2>
-    <form id="addForm" class="add-form">
-      <input type="text" id="code" placeholder="discord.new/XXXXX" required>
-      <input type="text" id="title" placeholder="Tytuł" required>
-      <textarea id="desc" placeholder="Opis"></textarea>
-      <input type="text" id="tags" placeholder="Tagi (oddzielone przecinkami)">
-      <button type="submit">Dodaj szablon</button>
+  <section id="tab-catalog" class="tabpanel active">
+    <form id="searchForm" class="toolbar" onsubmit="return false;">
+      <input id="q" type="search" placeholder="Szukaj...">
+      <button id="btnSearch" type="button">🔍 Szukaj</button>
     </form>
+
+    <section class="add-section">
+      <div class="add-head">
+        <h2>➕ Dodaj nowy szablon</h2>
+        <div class="lock">
+          <input type="password" id="unlockPwd" placeholder="Hasło, aby odblokować" />
+          <button id="unlockBtn" type="button">🔓 Odblokuj</button>
+        </div>
+      </div>
+      <p class="hint">Dodawanie jest zablokowane hasłem (front-end). Do prawdziwego zabezpieczenia polecamy backend.</p>
+      <form id="addForm" class="add-form locked" aria-disabled="true">
+        <input type="text" id="code" placeholder="discord.new/XXXXX" required disabled>
+        <input type="text" id="title" placeholder="Tytuł" required disabled>
+        <textarea id="desc" placeholder="Opis" disabled></textarea>
+        <input type="text" id="tags" placeholder="Tagi (oddzielone przecinkami)" disabled>
+        <button type="submit" disabled>Dodaj szablon</button>
+      </form>
+    </section>
+
+    <div id="stats" class="meta"></div>
+    <section id="grid" class="grid" aria-live="polite"></section>
+    <div id="pager" class="pagination"></div>
   </section>
 
-  <div id="stats" class="meta"></div>
-  <section id="grid" class="grid" aria-live="polite"></section>
-  <div id="pager" class="pagination"></div>
+  <section id="tab-discord" class="tabpanel">
+    <div class="discord-card">
+      <img src="server-icon.gif" alt="Ikona serwera" class="discord-icon">
+      <div class="discord-info">
+        <h2>Nasz serwer Discord</h2>
+        <p class="desc">
+          Dołącz do naszej społeczności — znajdziesz tu aktualne szablony, pomoc oraz ogłoszenia.
+        </p>
+        <ul class="bullets">
+          <li>Aktualności o nowych szablonach</li>
+          <li>Wsparcie i feedback</li>
+          <li>Konkursy i ogłoszenia</li>
+        </ul>
+        <a id="inviteBtn" class="btn big" target="_blank" rel="noopener">✨ Dołącz na Discorda !</a>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer class="container footer">
-  <p>Static HTML+CSS+JS. Dane trzymane są w pamięci przeglądarki.</p>
+  <p>Static HTML+CSS+JS. Motyw zapamiętywany w przeglądarce.</p>
 </footer>
 
 <script>
+const DISCORD_INVITE_URL = "https://discord.gg/szablonyteam";
+const ADD_PASSWORD = "dupaguwno";
+
 const PAGE_SIZE = 12;
 let fuse;
 
-// ===== Load initial data =====
+const html = document.documentElement;
+const themeSwitch = document.getElementById('themeSwitch');
+function setTheme(mode) {
+  html.setAttribute('data-theme', mode);
+  localStorage.setItem('theme', mode);
+  themeSwitch.checked = mode === 'dark';
+}
+themeSwitch.addEventListener('change', () => setTheme(themeSwitch.checked ? 'dark' : 'light'));
+setTheme(localStorage.getItem('theme') || 'light');
+
+const tabs = document.querySelectorAll('.tab');
+const tabpanels = document.querySelectorAll('.tabpanel');
+tabs.forEach(t => t.addEventListener('click', () => {
+  tabs.forEach(x=>x.classList.remove('active'));
+  tabpanels.forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+  if (t.dataset.tab === 'discord') {
+    document.getElementById('inviteBtn').setAttribute('href', DISCORD_INVITE_URL);
+  }
+}));
+
 async function loadData() {
   const res = await fetch('templates.json');
   const data = await res.json();
@@ -55,20 +124,14 @@ async function loadData() {
     url: it.url || ('https://discord.new/' + it.code)
   }));
 }
-
 function refreshFuse(data) {
-  fuse = new Fuse(data, {
-    keys: ['title','description','tags'],
-    threshold: 0.4
-  });
+  fuse = new Fuse(data, { keys: ['title','description','tags'], threshold: 0.35 });
 }
-
 function filterData(all) {
   const q = document.getElementById('q').value.trim();
   if (!q) return all;
   return fuse.search(q).map(r => r.item);
 }
-
 function renderPage(items, page=1) {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -87,18 +150,39 @@ function renderPage(items, page=1) {
     grid.appendChild(card);
   }
 }
-
 function updateStats(filtered, total) {
   const stats = document.getElementById('stats');
   const pages = Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
   stats.textContent = `Łącznie: ${filtered.length} z ${total} • Strony: ${pages}`;
 }
-
 function doRender(all) {
   const filtered = filterData(all);
   renderPage(filtered,1);
   updateStats(filtered,all.length);
 }
+
+const addForm = document.getElementById('addForm');
+const unlockBtn = document.getElementById('unlockBtn');
+const unlockPwd = document.getElementById('unlockPwd');
+
+function setLocked(isLocked) {
+  addForm.classList.toggle('locked', isLocked);
+  addForm.setAttribute('aria-disabled', isLocked ? 'true' : 'false');
+  [...addForm.elements].forEach(el => el.disabled = isLocked);
+}
+function isUnlocked() { return sessionStorage.getItem('unlocked') === '1'; }
+if (isUnlocked()) { setLocked(false); }
+
+unlockBtn.addEventListener('click', () => {
+  if (unlockPwd.value === ADD_PASSWORD) {
+    sessionStorage.setItem('unlocked','1');
+    setLocked(false);
+    unlockPwd.value='';
+  } else {
+    unlockPwd.classList.add('shake');
+    setTimeout(()=>unlockPwd.classList.remove('shake'), 500);
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   loadData().then(all => {
@@ -110,14 +194,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('btnSearch').addEventListener('click', () => doRender(window.__ALL__||[]));
   document.getElementById('q').addEventListener('input', () => doRender(window.__ALL__||[]));
 
-  document.getElementById('addForm').addEventListener('submit', (e) => {
+  addForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (!isUnlocked()) return;
     const code = document.getElementById('code').value.trim().replace('https://discord.new/','');
     const title = document.getElementById('title').value.trim();
     const description = document.getElementById('desc').value.trim();
     const tags = document.getElementById('tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+    if (!code || !title) return;
     const newTemplate = { code, title, description, tags, url: 'https://discord.new/'+code };
-    window.__ALL__.push(newTemplate);
+    window.__ALL__.unshift(newTemplate);
     refreshFuse(window.__ALL__);
     doRender(window.__ALL__);
     e.target.reset();
@@ -126,3 +212,4 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
